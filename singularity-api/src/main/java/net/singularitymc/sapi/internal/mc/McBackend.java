@@ -12,6 +12,7 @@ public final class McBackend implements Backend {
     void attach(MinecraftServer server) {
         this.server = server;
         this.impl = new ServerImpl(server);
+        net.singularitymc.sapi.internal.Menus.setFactory(MenuImpl::new);
     }
 
     void detach() {

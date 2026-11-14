@@ -1,0 +1,145 @@
+id = "servermanager"
+name = "Server Manager"
+version = "${version}"
+main = "net.singularitymc.servermanager.ServerManagerPlugin"
+# the dashboard is a Menu (API 4.3), the players' ping came with API 4.2
+api = ">=4.3.0"
+description = "Tools for running a server: TPS and memory, broadcasts, staff chat, maintenance mode, mutes, timed shutdown."
+authors = ["The Singularity Project"]
+
+[commands.tps]
+description = "Tick rate, memory, load level and uptime"
+usage = "/tps"
+aliases = ["lag", "status"]
+permission = "servermanager.tps"
+
+[commands.online]
+description = "Who is online, and where"
+usage = "/online"
+permission = "servermanager.online"
+
+[commands.broadcast]
+description = "Sends a message to everyone"
+usage = "/broadcast <message>"
+aliases = ["bc"]
+permission = "servermanager.broadcast"
+
+[commands.staffchat]
+description = "Sends a message to staff only"
+usage = "/staffchat <message>"
+aliases = ["sc"]
+permission = "servermanager.staffchat"
+
+[commands.maintenance]
+description = "Maintenance mode: only staff can join"
+usage = "/maintenance [on|off]"
+permission = "servermanager.maintenance"
+
+[commands.mute]
+description = "Stops a player from chatting"
+usage = "/mute <player> [minutes]"
+permission = "servermanager.mute"
+
+[commands.unmute]
+description = "Lets a muted player chat again"
+usage = "/unmute <player>"
+permission = "servermanager.mute"
+
+[commands.kickall]
+description = "Kicks everyone who is not staff"
+usage = "/kickall [reason]"
+permission = "servermanager.kickall"
+
+[commands.shutdown]
+description = "Stops the server after a countdown"
+usage = "/shutdown <seconds|cancel> [reason]"
+permission = "servermanager.shutdown"
+
+[commands.tpto]
+description = "Teleports you to a player"
+usage = "/tpto <player>"
+permission = "servermanager.teleport"
+
+[commands.tphere]
+description = "Teleports a player to you"
+usage = "/tphere <player>"
+permission = "servermanager.teleport"
+
+[commands.gm]
+description = "Changes a game mode"
+usage = "/gm <survival|creative|adventure|spectator> [player]"
+permission = "servermanager.gamemode"
+
+[commands.dashboard]
+description = "Opens the server dashboard (a window with the server's numbers, actions and players)"
+usage = "/dashboard"
+aliases = ["dash"]
+permission = "servermanager.dashboard"
+
+[commands.singularity]
+description = "Shows what this server runs"
+usage = "/singularity"
+aliases = ["about"]
+permission = "servermanager.about"
+
+[permissions."servermanager.dashboard"]
+default = "op"
+description = "Open the server dashboard"
+
+[permissions."servermanager.about"]
+default = "true"
+description = "Use /singularity"
+
+[commands.servermanager]
+description = "Reloads the Server Manager settings"
+usage = "/servermanager reload"
+aliases = ["sm"]
+permission = "servermanager.admin"
+
+[permissions."servermanager.tps"]
+default = "true"
+description = "Use /tps"
+
+[permissions."servermanager.online"]
+default = "op"
+description = "Use /online (shows positions)"
+
+[permissions."servermanager.broadcast"]
+default = "op"
+description = "Use /broadcast"
+
+[permissions."servermanager.staffchat"]
+default = "op"
+description = "Use and read the staff chat, and get lag alerts"
+
+[permissions."servermanager.maintenance"]
+default = "op"
+description = "Switch maintenance mode"
+
+[permissions."servermanager.maintenance.bypass"]
+default = "op"
+description = "Join during maintenance; not kicked by /kickall"
+
+[permissions."servermanager.mute"]
+default = "op"
+description = "Use /mute and /unmute"
+
+[permissions."servermanager.kickall"]
+default = "op"
+description = "Use /kickall"
+
+[permissions."servermanager.shutdown"]
+default = "op"
+description = "Use /shutdown"
+
+[permissions."servermanager.teleport"]
+default = "op"
+description = "Use /tpto and /tphere"
+
+[permissions."servermanager.gamemode"]
+default = "op"
+description = "Use /gm"
+
+[permissions."servermanager.admin"]
+default = "op"
+description = "Use /servermanager"

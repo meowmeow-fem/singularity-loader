@@ -1,7 +1,12 @@
 package net.singularitymc.sapi.internal.mc;
 
 import java.util.UUID;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.Permissions;
@@ -95,6 +100,93 @@ public final class PlayerImpl extends EntityImpl implements Player {
     @Override
     public void kick(String reason) {
         online().connection.disconnect(Component.literal(reason));
+    }
+
+    /** The Minecraft player behind an API player, or {@code null} if that player is offline. */
+    static ServerPlayer handle(Player player) {
+        return player instanceof PlayerImpl p ? p.orNull() : null;
+    }
+
+    private ServerPlayer orNull() {
+        return server.getPlayerList().getPlayer(uuid);
+    }
+
+    @Override
+    public boolean isFlying() {
+        ServerPlayer p = orNull();
+        return p != null && p.getAbilities().flying;
+    }
+
+    @Override
+    public boolean canFly() {
+        ServerPlayer p = orNull();
+        return p != null && p.getAbilities().mayfly;
+    }
+
+    @Override
+    public boolean isGliding() {
+        ServerPlayer p = orNull();
+        return p != null && p.isFallFlying();
+    }
+
+    @Override
+    public boolean isRiptiding() {
+        ServerPlayer p = orNull();
+        return p != null && p.isAutoSpinAttack();
+    }
+
+    @Override
+    public boolean isInLiquid() {
+        ServerPlayer p = orNull();
+        return p != null && (p.isInWater() || p.isInLava());
+    }
+
+    @Override
+    public boolean isClimbing() {
+        ServerPlayer p = orNull();
+        return p != null && p.onClimbable();
+    }
+
+    @Override
+    public boolean isInVehicle() {
+        ServerPlayer p = orNull();
+        return p != null && p.isPassenger();
+    }
+
+    @Override
+    public boolean isSupported() {
+        ServerPlayer p = orNull();
+        if (p == null) {
+            return false;
+        }
+        // the hit box, a little wider, stretched half a block down: anything that collides with it holds the player
+        AABB below = p.getBoundingBox().inflate(0.3, 0.0, 0.3).expandTowards(0.0, -0.6, 0.0);
+        return !p.level().noCollision(p, below);
+    }
+
+    @Override
+    public double movementSpeed() {
+        ServerPlayer p = orNull();
+        return p == null ? 0.0 : p.getAttributeValue(Attributes.MOVEMENT_SPEED);
+    }
+
+    @Override
+    public int effectLevel(String id) {
+        ServerPlayer p = orNull();
+        Identifier key = p == null ? null : Identifier.tryParse(id);
+        if (key == null) {
+            return 0;
+        }
+        return BuiltInRegistries.MOB_EFFECT.get(key).map(effect -> {
+            MobEffectInstance active = p.getEffect(effect);
+            return active == null ? 0 : active.getAmplifier() + 1;
+        }).orElse(0);
+    }
+
+    @Override
+    public int ping() {
+        ServerPlayer p = orNull();
+        return p == null ? 0 : p.connection.latency();
     }
 
     @Override

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "singularity_keys",
+  "version": "${version}",
+  "name": "Singularity Keys",
+  "description": "Right Shift opens the server dashboard and F12 the anti-cheat dashboard on a Singularity server (it sends /dashboard and /anticheat gui).",
+  "license": "Apache-2.0",
+  "environment": "client",
+  "mixins": [
+    "singularity-keys.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": ">=26.1 <26.4",
+    "java": ">=25"
+  }
+}

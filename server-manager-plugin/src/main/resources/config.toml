@@ -1,0 +1,35 @@
+# Server Manager settings. Copied to SingularityPlugins/servermanager/config.toml on first start.
+# & colour codes work: &a green, &6 gold, &c red, &l bold, &r reset. "/servermanager reload" re-reads this file.
+
+# Sent to a player who joins, line by line; an empty list = nothing.
+# {player}, {online} (players online), {tps} and {version} (Minecraft version) are replaced.
+welcome = [
+  "&8&m                                                  ",
+  "  &6&lWelcome, {player}!",
+  "  &7{online} online &8| &7TPS &a{tps} &8| &7Minecraft &f{version}",
+  "  &7Type &f/singularity &7to see what runs here.",
+  "&8&m                                                  ",
+]
+
+# Shown in front of /broadcast messages and of the automatic announcements.
+broadcast-prefix = "&6[Server]&r "
+
+# Shown in front of staff chat messages. {player} is replaced.
+staffchat-format = "&d[Staff] {player}:&r "
+
+# Messages sent to everyone in turn; 0 minutes or an empty list = off.
+announce-every-minutes = 0
+announcements = [
+  "&7Be kind to each other.",
+]
+
+# Staff are told when the tick rate of the last 10 seconds is below this (0 = never), at most once a minute.
+lag-alert-below-tps = 15.0
+
+[maintenance]
+# Changed by /maintenance; kept over restarts.
+enabled = false
+kick-message = "The server is under maintenance. Please come back later."
+
+[mute]
+message = "&cYou are muted."

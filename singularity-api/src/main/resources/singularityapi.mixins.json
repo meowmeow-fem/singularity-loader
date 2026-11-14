@@ -4,9 +4,11 @@
   "package": "net.singularitymc.sapi.internal.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AttackMixin",
     "ChatMixin",
     "DedicatedServerMixin",
-    "MinecraftServerMixin"
+    "MinecraftServerMixin",
+    "MoveMixin"
   ],
   "injectors": {
     "defaultRequire": 1

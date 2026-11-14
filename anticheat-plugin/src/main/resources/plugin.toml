@@ -1,0 +1,26 @@
+id = "anticheat"
+name = "Singularity AntiCheat"
+version = "${version}"
+main = "net.singularitymc.anticheat.AntiCheatPlugin"
+# PlayerMoveEvent, PlayerAttackEvent and the players' movement state came with API 4.2, menus with 4.3
+api = ">=4.3.0"
+description = "Server-side checks for speed, flying, timer, reach and click rate."
+authors = ["The Singularity Project"]
+
+[commands.anticheat]
+description = "The anti-cheat dashboard (gui), violations of online players, reload, alerts on/off"
+usage = "/anticheat [gui|status|reload|alerts]"
+aliases = ["ac"]
+permission = "anticheat.command"
+
+[permissions."anticheat.command"]
+default = "op"
+description = "Use /anticheat"
+
+[permissions."anticheat.alerts"]
+default = "op"
+description = "Be told when a player fails a check"
+
+[permissions."anticheat.bypass"]
+default = "false"
+description = "Not checked at all"

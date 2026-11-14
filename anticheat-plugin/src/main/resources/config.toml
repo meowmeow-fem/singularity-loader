@@ -1,0 +1,56 @@
+# Singularity AntiCheat settings. Copied to SingularityPlugins/anticheat/config.toml on first start.
+# "/anticheat reload" re-reads this file.
+#
+# How it works: every failed check adds 1 to the player's violation level (VL) of that check; a VL goes down by 1
+# every "violation-decay-seconds". Nothing happens at VL 1, so a single odd moment (a wind charge, a piston, a lag
+# spike) costs nothing. From "alert-at" staff are told, from "setback-at" the player is put back (movement checks)
+# or the hit is dropped (combat checks), and at "kick-at" the player is kicked (0 = never).
+
+violation-decay-seconds = 15
+alert-at = 2
+# Operators are checked like everyone else unless this is true.
+exempt-operators = false
+
+[speed]
+enabled = true
+# Average blocks per movement packet (one per client tick) over 10 packets, for a sprinting player without effects.
+# Speed, Soul Speed and other speed modifiers raise both limits by the same factor.
+# Running on flat ground (sprinting is 0.28):
+max-on-ground = 0.37
+# While jumping, falling, on stairs or in water (sprint-jumping is 0.36):
+max-jumping = 0.62
+# Both limits are multiplied by this on and shortly after ice or slime:
+ice-factor = 2.0
+setback-at = 2
+kick-at = 0
+
+[fly]
+enabled = true
+# Looks at players with nothing solid under them: after 12 packets in the air their vertical speed must have dropped
+# the way gravity makes it drop. Catches hovering, flying up and gliding down slowly.
+setback-at = 2
+kick-at = 0
+
+[timer]
+enabled = true
+# A client sends one movement packet per tick, 20 a second. This is how many milliseconds of packets a player may be
+# ahead of real time before it counts (bursts after a lag spike are below this).
+max-ahead-ms = 750
+setback-at = 2
+kick-at = 0
+
+[reach]
+enabled = true
+# Blocks beyond the player's reach (3 in survival) that still count as fine, plus up to "ping-allowance" more,
+# growing with the player's ping (the target moved since the client saw it).
+tolerance = 0.5
+ping-allowance = 1.5
+setback-at = 1
+kick-at = 0
+
+[clicks]
+enabled = true
+# Hits per second.
+max-per-second = 20
+setback-at = 1
+kick-at = 0

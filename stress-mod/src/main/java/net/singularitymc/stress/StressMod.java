@@ -71,6 +71,10 @@ public final class StressMod implements ServerModInitializer {
         final boolean explorer;
         double dirX, dirZ;
         int rest;
+        // "/stress cheat": this bot sends movement packets like a client, in the given mode, for cheatTicks ticks
+        String cheat;
+        int cheatTicks, cheatAge;
+        double cx, cy, cz, groundY, vy;
 
         Fake(ServerPlayer player, double homeX, double homeZ, boolean explorer) {
             this.player = player;
@@ -146,6 +150,24 @@ public final class StressMod implements ServerModInitializer {
                     c.getSource().sendSuccess(() -> Component.literal("Stress: summoned " + n + " " + type), false);
                     return n;
                 }))))
+            .then(Commands.literal("cheat").then(Commands.argument("bot", IntegerArgumentType.integer(1, 2000))
+                .then(Commands.argument("mode", com.mojang.brigadier.arguments.StringArgumentType.word())
+                    .executes(c -> cheat(c.getSource(), IntegerArgumentType.getInteger(c, "bot"),
+                        com.mojang.brigadier.arguments.StringArgumentType.getString(c, "mode"), 100))
+                    .then(Commands.argument("ticks", IntegerArgumentType.integer(1, 6000))
+                        .executes(c -> cheat(c.getSource(), IntegerArgumentType.getInteger(c, "bot"),
+                            com.mojang.brigadier.arguments.StringArgumentType.getString(c, "mode"),
+                            IntegerArgumentType.getInteger(c, "ticks")))))))
+            // test driver for chest-window GUIs: what window bot N has open, and a click into it
+            .then(Commands.literal("menu").then(Commands.argument("bot", IntegerArgumentType.integer(1, 2000))
+                .executes(c -> menu(c.getSource(), IntegerArgumentType.getInteger(c, "bot"), -1, "left"))
+                .then(Commands.argument("slot", IntegerArgumentType.integer(0, 53))
+                    .executes(c -> menu(c.getSource(), IntegerArgumentType.getInteger(c, "bot"),
+                        IntegerArgumentType.getInteger(c, "slot"), "left"))
+                    .then(Commands.argument("how", com.mojang.brigadier.arguments.StringArgumentType.word())
+                        .executes(c -> menu(c.getSource(), IntegerArgumentType.getInteger(c, "bot"),
+                            IntegerArgumentType.getInteger(c, "slot"),
+                            com.mojang.brigadier.arguments.StringArgumentType.getString(c, "how")))))))
             .then(Commands.literal("chunks").executes(c -> chunks(c.getSource())))
             .then(Commands.literal("clear").executes(c -> clear(c.getSource())))
             .then(Commands.literal("mark").executes(c -> mark(c.getSource())))
@@ -327,6 +349,12 @@ public final class StressMod implements ServerModInitializer {
 
     private static void step(Fake f) {
         ServerPlayer p = f.player;
+        if (f.cheat != null) {
+            // no doTick here: it lets gravity act on the bot on the server side, which a real player's own client
+            // does instead, and the server-side move would look like a teleport between two packets
+            cheatStep(f);
+            return;
+        }
         p.doTick(); // what the packet listener does for a real player every tick
         if (p.getHealth() < p.getMaxHealth()) p.setHealth(p.getMaxHealth());
         if (f.rest > 0) {
@@ -350,6 +378,182 @@ public final class StressMod implements ServerModInitializer {
             }
         }
         place(f, x, z);
+    }
+
+    /**
+     * Test driver for anti-cheat plugins: bot {@code index} (1 = Bot1) sends real movement packets through its packet
+     * listener for {@code ticks} ticks. Modes: {@code walk}, {@code sprint}, {@code jump} (sprint-jumping with the
+     * game's gravity) are legitimate; {@code speed} (0.9 blocks per tick), {@code fly} (up, then hovering),
+     * {@code glide} (up, then sinking 0.05 per tick) and {@code timer} (three packets per tick) are not.
+     * {@code reach} and {@code clicks} hit the next bot once: from 6 and from 2 blocks, and 30 times in one tick.
+     */
+    private static int cheat(CommandSourceStack source, int index, String mode, int ticks) {
+        if (index > FAKES.size()) {
+            source.sendFailure(Component.literal("Stress: there is no Bot" + index));
+            return 0;
+        }
+        Fake f = FAKES.get(index - 1);
+        ServerPlayer p = f.player;
+        if (mode.equals("reach") || mode.equals("clicks")) {
+            if (FAKES.size() < 2) {
+                source.sendFailure(Component.literal("Stress: needs two bots"));
+                return 0;
+            }
+            ServerPlayer target = FAKES.get(index % FAKES.size()).player;
+            if (mode.equals("reach")) {
+                for (double away : new double[] {6, 6, 2}) {
+                    target.setPos(p.getX() + away, p.getY(), p.getZ());
+                    p.attack(target);
+                }
+            } else {
+                target.setPos(p.getX() + 2, p.getY(), p.getZ());
+                for (int i = 0; i < 30; i++) {
+                    p.attack(target);
+                }
+            }
+            source.sendSuccess(() -> Component.literal("Stress: " + p.getName().getString() + " hit "
+                + target.getName().getString() + " (" + mode + ")"), false);
+            return 1;
+        }
+        f.cheat = mode;
+        f.cheatTicks = ticks;
+        f.cheatAge = 0;
+        f.cx = p.getX();
+        f.cy = p.getY();
+        f.cz = p.getZ();
+        f.groundY = p.getY();
+        f.vy = 0;
+        if (!p.connection.hasClientLoaded()) {
+            p.connection.handleAcceptPlayerLoad(new net.minecraft.network.protocol.game.ServerboundPlayerLoadedPacket());
+        }
+        source.sendSuccess(() -> Component.literal("Stress: " + p.getName().getString() + " sends '" + mode
+            + "' packets for " + ticks + " ticks from " + String.format("%.1f, %.1f, %.1f", f.cx, f.cy, f.cz)), false);
+        return 1;
+    }
+
+    /**
+     * {@code slot < 0}: lists the icons of the window bot {@code index} has open. Otherwise clicks that slot
+     * ({@code how}: left, right or shift) the way a click packet would, then names the slot again.
+     */
+    private static int menu(CommandSourceStack source, int index, int slot, String how) {
+        if (index > FAKES.size()) {
+            source.sendFailure(Component.literal("Stress: there is no Bot" + index));
+            return 0;
+        }
+        ServerPlayer p = FAKES.get(index - 1).player;
+        net.minecraft.world.inventory.AbstractContainerMenu open = p.containerMenu;
+        if (open == p.inventoryMenu) {
+            source.sendSuccess(() -> Component.literal("Stress menu: " + p.getName().getString() + " has no window open"), false);
+            return 0;
+        }
+        int top = open.slots.size() - 36; // the rest is the player's own inventory
+        if (slot >= 0) {
+            open.clicked(slot, how.equals("right") ? 1 : 0, how.equals("shift")
+                ? net.minecraft.world.inventory.ContainerInput.QUICK_MOVE : net.minecraft.world.inventory.ContainerInput.PICKUP, p);
+            if (p.containerMenu != open) {
+                source.sendSuccess(() -> Component.literal("Stress menu: clicked " + slot + ", the window closed"), false);
+                return 1;
+            }
+            String after = slot < top ? describe(open.getSlot(slot).getItem()) : "?";
+            source.sendSuccess(() -> Component.literal("Stress menu: clicked " + slot + " (" + how + ") -> " + after), false);
+            return 1;
+        }
+        StringBuilder sb = new StringBuilder("Stress menu: " + top + " slots, carried " + (open.getCarried().isEmpty() ? "nothing" : "AN ITEM"));
+        for (int i = 0; i < top; i++) {
+            net.minecraft.world.item.ItemStack stack = open.getSlot(i).getItem();
+            if (!stack.isEmpty() && !stack.getHoverName().getString().isBlank()) {
+                sb.append("\n  ").append(i).append(": ").append(describe(stack));
+            }
+        }
+        String msg = sb.toString();
+        source.sendSuccess(() -> Component.literal(msg), false);
+        return 1;
+    }
+
+    private static String describe(net.minecraft.world.item.ItemStack stack) {
+        if (stack.isEmpty()) {
+            return "(empty)";
+        }
+        StringBuilder sb = new StringBuilder(stack.getHoverName().getString().replaceAll("§.", ""));
+        net.minecraft.world.item.component.ItemLore lore = stack.get(net.minecraft.core.component.DataComponents.LORE);
+        if (lore != null && !lore.lines().isEmpty()) {
+            sb.append(" | ").append(lore.lines().get(0).getString().replaceAll("§.", ""));
+        }
+        return sb.toString();
+    }
+
+    private static void cheatStep(Fake f) {
+        ServerPlayer p = f.player;
+        acceptTeleport(p);
+        // what the packet listener's own tick does first: this tick's movement is measured from here
+        p.connection.resetPosition();
+        if (p.getX() != f.cx || p.getY() != f.cy || p.getZ() != f.cz) {
+            // the server put the bot somewhere else (a setback): go on from there, like a client
+            f.cx = p.getX();
+            f.cy = p.getY();
+            f.cz = p.getZ();
+            f.vy = 0;
+        }
+        int age = f.cheatAge++;
+        switch (f.cheat) {
+            case "walk" -> send(f, 0.2159, 0, true);
+            case "sprint" -> send(f, 0.2806, 0, true);
+            case "speed" -> send(f, 0.9, 0, true);
+            case "timer" -> {
+                for (int i = 0; i < 3; i++) {
+                    send(f, 0.2159, 0, true);
+                }
+            }
+            case "jump" -> {
+                if (f.cy <= f.groundY) {
+                    f.vy = 0.42;
+                }
+                double y = Math.max(f.groundY, f.cy + f.vy);
+                f.vy = (f.vy - 0.08) * 0.98;
+                send(f, 0.36, y - f.cy, y <= f.groundY);
+            }
+            case "fly" -> send(f, 0.2, f.cy < f.groundY + 4 ? 0.3 : 0, false);
+            case "glide" -> send(f, 0.2, age < 20 ? 0.3 : -0.05, false);
+            default -> f.cheatAge = f.cheatTicks;
+        }
+        if (f.cheatAge >= f.cheatTicks) {
+            String msg = "Stress: " + p.getName().getString() + " finished '" + f.cheat + "' at "
+                + String.format("%.1f, %.1f, %.1f", p.getX(), p.getY(), p.getZ());
+            f.cheat = null;
+            server.getPlayerList().broadcastSystemMessage(Component.literal(msg), false);
+        }
+    }
+
+    /** One position packet, {@code horizontal} blocks along +X and {@code dy} up, handled like one from the network. */
+    private static void send(Fake f, double horizontal, double dy, boolean onGround) {
+        ServerPlayer p = f.player;
+        f.cx += horizontal;
+        f.cy += dy;
+        p.connection.handleMovePlayer(new net.minecraft.network.protocol.game.ServerboundMovePlayerPacket.Pos(
+            f.cx, f.cy, f.cz, onGround, false));
+        // a client ends each of its ticks with this; 26.3 drops a client that sends two positions without it
+        p.connection.handleClientTickEnd(net.minecraft.network.protocol.game.ServerboundClientTickEndPacket.INSTANCE);
+        acceptTeleport(p);
+    }
+
+    /** A client confirms every teleport; until then the server ignores its movement. */
+    private static void acceptTeleport(ServerPlayer p) {
+        try {
+            Class<?> c = net.minecraft.server.network.ServerGamePacketListenerImpl.class;
+            Field awaiting = c.getDeclaredField("awaitingPositionFromClient");
+            awaiting.setAccessible(true);
+            Object pos = awaiting.get(p.connection);
+            if (pos == null) {
+                return;
+            }
+            Field id = c.getDeclaredField("awaitingTeleport");
+            id.setAccessible(true);
+            net.minecraft.world.phys.Vec3 at = (net.minecraft.world.phys.Vec3) pos;
+            p.connection.handleAcceptTeleportPacket(new net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket(
+                id.getInt(p.connection), at.x, at.y, at.z, p.getYRot(), p.getXRot()));
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static void place(Fake f, double x, double z) {

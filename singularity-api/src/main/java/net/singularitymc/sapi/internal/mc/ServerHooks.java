@@ -3,7 +3,12 @@ package net.singularitymc.sapi.internal.mc;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.singularitymc.api.event.EventBus;
+import net.minecraft.world.entity.Entity;
+import net.singularitymc.sapi.event.player.PlayerAttackEvent;
 import net.singularitymc.sapi.event.player.PlayerChatEvent;
+import net.singularitymc.sapi.event.player.PlayerMoveEvent;
+import net.singularitymc.sapi.world.Location;
+import net.singularitymc.sapi.world.World;
 import net.singularitymc.sapi.event.server.ServerStartedEvent;
 import net.singularitymc.sapi.event.server.ServerStoppingEvent;
 import net.singularitymc.sapi.event.server.ServerTickEvent;
@@ -60,6 +65,40 @@ public final class ServerHooks {
         }
         r.shutdown();
         backend.detach();
+    }
+
+    /** Whether the caller is on the server thread of a running server (packets first arrive on a network thread). */
+    public static boolean onServerThread(ServerPlayer player) {
+        ApiRuntime r = runtime;
+        return r != null && r.isServerRunning() && player.level().getServer().isSameThread();
+    }
+
+    /**
+     * End of {@code ServerGamePacketListenerImpl.handleMovePlayer} on the server thread; the arguments are where the
+     * player was before the packet. A cancelled event puts the player back there.
+     */
+    public static void moved(ServerPlayer player, double x, double y, double z, float yaw, float pitch) {
+        ApiRuntime r = runtime;
+        if (r == null || !r.isServerRunning() || player.hasDisconnected()) {
+            return;
+        }
+        World world = WorldImpl.of(player.level());
+        Location from = new Location(world, x, y, z, yaw, pitch);
+        Location to = new Location(world, player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
+        if (EventBus.post(new PlayerMoveEvent(PlayerImpl.of(player), from, to)).isCancelled()) {
+            player.connection.teleport(x, y, z, yaw, pitch);
+        }
+    }
+
+    /** Start of {@code Player.attack}: whether to drop the hit. */
+    public static boolean attack(ServerPlayer player, Entity target) {
+        ApiRuntime r = runtime;
+        if (r == null || !r.isServerRunning()) {
+            return false;
+        }
+        double distance = Math.sqrt(target.getBoundingBox().distanceToSqr(player.getEyePosition()));
+        return EventBus.post(new PlayerAttackEvent(PlayerImpl.of(player), EntityImpl.of(target), distance,
+                player.entityInteractionRange())).isCancelled();
     }
 
     /** {@code ServerGamePacketListenerImpl.broadcastChatMessage}: whether to drop the message. */

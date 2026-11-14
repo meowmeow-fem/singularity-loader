@@ -7,6 +7,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ## [4.4.0] - Unreleased
 
 ### Added
+- **Singularity API 4.2.0**: `PlayerMoveEvent` (one per movement packet, after the server applied it; cancelling puts
+  the player back) and `PlayerAttackEvent` (before a hit is worked out, with the distance to the target's hit box and
+  the player's reach; cancelling drops the hit). `Player` gained the movement state anti-cheat checks need:
+  `isFlying`, `canFly`, `isGliding`, `isRiptiding`, `isInLiquid`, `isClimbing`, `isInVehicle`, `isSupported`
+  (something solid under the player, worked out by the server), `movementSpeed`, `effectLevel(id)`, `ping`.
+- **Singularity API 4.3.0**: `net.singularitymc.sapi.gui.Menu` and `Icon`: a chest-style window of clickable icons,
+  drawn by the game's own chest screen (works with every client). Nothing can be taken out; a click runs the icon's
+  handler; changing an icon while the window is open shows at once.
+- **Server Manager** plugin (`server-manager-plugin`, not in the distribution): `/tps`, `/online`, `/broadcast`,
+  `/staffchat`, `/maintenance`, `/mute`, `/unmute`, `/kickall`, `/shutdown`, `/tpto`, `/tphere`, `/gm`, timed
+  announcements, lag alert for staff; `/dashboard` (a window with tick rate, memory, players, maintenance switch,
+  shutdown, and the players to teleport to or mute); a welcome banner for joining players (`welcome` in its config);
+  `/singularity`, which draws a black hole in chat next to the server's versions and numbers.
+- **Singularity AntiCheat** plugin (`anticheat-plugin`, not in the distribution, needs API 4.3): speed, fly, timer,
+  reach and click-rate checks with violation levels, setbacks, staff alerts and an optional kick; `/anticheat`, and
+  `/anticheat gui` (a window to switch checks on and off and to see, visit and clear the players' violation levels).
+  Tested with fake players that send real movement packets (`/stress cheat`), not yet with a real client.
+- **Singularity Keys** (`keys-client-mod`, a Fabric client mod like the wide client): Right Shift sends `/dashboard`,
+  F12 sends `/anticheat gui`. Compiled and checked against the 26.3 client only; not run in a client yet.
+- Stress mod: `/stress cheat <bot> <walk|sprint|jump|speed|fly|glide|timer|reach|clicks> [ticks]` and
+  `/stress menu <bot> [slot] [left|right|shift]` (what window a bot has open; click into it).
 - `redstone_wire_algorithm = "fast"` (opt-in, default `"vanilla"`; `net.singularitymc.perf.FastWire`): when a redstone
   dust has to change, every dust within 15 steps gets its final power in one pass (strongest first, from the real
   sources and from the unchanged dust beyond), then the other blocks around the changed dust are notified once.
