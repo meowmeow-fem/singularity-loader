@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "examplemod",
+  "version": "${version}",
+  "name": "Example Mod",
+  "description": "Shows how to write a mod for Singularity Loader: an entrypoint and a Mixin.",
+  "authors": ["The Singularity Project"],
+  "contact": {
+    "homepage": "https://example.com/examplemod"
+  },
+  "license": "Apache-2.0",
+  "environment": "server",
+  "entrypoints": {
+    "main": ["net.singularitymc.example.ExampleMod"],
+    "server": ["net.singularitymc.example.ExampleMod"]
+  },
+  "mixins": ["examplemod.mixins.json"],
+  "depends": {
+    "singularity-loader": ">=0.1.0",
+    "minecraft": ">=26.1",
+    "java": ">=21"
+  }
+}

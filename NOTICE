@@ -1,0 +1,15 @@
+Singularity Loader
+Copyright 2026 The Singularity Project
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It makes use of the following third-party software, each under its own license:
+
+  - SpongePowered Mixin (FabricMC fork)   MIT License    https://github.com/FabricMC/Mixin
+  - MixinExtras                           MIT License    https://github.com/LlamaLad7/MixinExtras
+  - ASM                                   BSD 3-Clause   https://asm.ow2.io/
+  - Gson                                  Apache 2.0     https://github.com/google/gson
+
+"Minecraft" is a trademark of Mojang AB / Microsoft. Singularity Loader is not
+affiliated with or endorsed by Mojang or Microsoft and does not contain any
+Minecraft code or assets; you must supply your own copy of the official server.

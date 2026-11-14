@@ -1,0 +1,185 @@
+# ==================================================
+# Singularity Server Configuration
+# ==================================================
+
+[server]
+motd = "A Minecraft Server"
+server_port = 25565
+server_ip = ""
+max_players = 20
+online_mode = true
+white_list = true
+enforce_whitelist = false
+hardcore = false
+difficulty = "easy"
+gamemode = "survival"
+force_gamemode = false
+hide_online_players = false
+bug_report_link = ""
+
+[world]
+level_name = "world"
+level_seed = ""
+level_type = "minecraft:normal"
+generate_structures = true
+generator_settings = "{}"
+spawn_protection = 16
+max_world_size = 29999984
+view_distance = 10
+simulation_distance = 10
+sync_chunk_writes = true
+region_file_compression = "deflate"
+
+[gameplay & permissions]
+op_permission_level = 4
+function_permission_level = 2
+allow_flight = false
+pvp = true
+enable_command_block = true
+entity_broadcast_range_percentage = 100
+chat_spam_threshold_seconds = 10
+command_spam_threshold_seconds = 10
+rate_limit = 0
+
+[performance & engine]
+max_tick_time = 60000
+max_chained_neighbor_updates = 1000000
+network_compression_threshold = 256
+use_native_transport = true
+pause_when_empty_seconds = 60
+player_idle_timeout = 0
+
+[resource_packs]
+require_resource_pack = false
+resource_pack = ""
+resource_pack_id = ""
+resource_pack_sha1 = ""
+resource_pack_prompt = ""
+
+[packs]
+initial_enabled_packs = "vanilla"
+initial_disabled_packs = ""
+
+[security & network]
+enforce_secure_profile = true
+prevent_proxy_connections = false
+log_ips = true
+accepts_transfers = false
+enable_status = true
+status_heartbeat_interval = 0
+
+[rcon_and_query]
+enable_rcon = false
+rcon_port = 25575
+rcon_password = ""
+broadcast_rcon_to_ops = true
+
+enable_query = false
+query_port = 25565
+
+[management_server]
+management_server_enabled = false
+management_server_host = "localhost"
+management_server_port = 0
+management_server_secret = ""
+management_server_tls_enabled = true
+management_server_tls_keystore = ""
+management_server_tls_keystore_password = ""
+management_server_allowed_origins = ""
+
+[misc]
+broadcast_console_to_ops = true
+enable_code_of_conduct = false
+enable_jmx_monitoring = false
+text_filtering_config = ""
+text_filtering_version = 0
+
+[performance]
+# Many players, weak hardware (docs/PERFORMANCE.md). -Dsingularity.opt.disable=true turns all of it off.
+
+# The server watches how long its ticks take. When they pass target_tick_ms it lowers, step by step,
+# the simulation distance, then the view distance, slows mob spawning and far-away mobs, and (only
+# under heavy load) thins random ticks. When the load is gone it goes back up, slowly. The distances
+# never go below the two minimums, and never above view_distance / simulation_distance from [world].
+# Every change is logged as "[Perf] load level ...".
+adaptive_performance = true
+target_tick_ms = 45
+min_simulation_distance = 3
+min_view_distance = 4
+
+# Mobs with no player within this many blocks tick only once in a while, as long as nothing happens
+# to them (falling, swimming, burning, hurt, fighting or ridden mobs always tick). 0 = off (vanilla).
+# Mob farms whose mobs must walk somewhere on their own while you stand farther away than this get
+# slower; raise the value or stand closer.
+entity_activation_range = 48
+
+# A moving player is checked against every entity of the world once every this many ticks instead of
+# on every move packet. Entities at the very edge of their tracking range appear up to that many
+# ticks later. 1 = vanilla.
+entity_tracking_interval = 8
+
+# Milliseconds per tick the chunk system always gets for its queued work (handing out and taking back
+# chunk tickets, unloading chunks), even when the server is behind. Vanilla does that work only in
+# spare time, so an overloaded server never lets go of chunks and cannot recover. 0 = vanilla.
+overload_chunk_budget_ms = 3
+
+# Redstone dust that changes its power notifies each block around it once instead of up to six times
+# (vanilla sends 42 notifications to 25 blocks). The dust algorithm itself is vanilla's. false = vanilla;
+# try that first if an unusual contraption behaves differently.
+redstone_dedup_wire_updates = true
+
+# "vanilla": every dust settles by itself, as always. "fast" (opt-in): when a dust changes, the whole
+# affected piece of the dust network gets its final power at once, and the blocks around it are told
+# once. The resulting powers are the same; the order in which other components are updated is not,
+# so contraptions that depend on vanilla's update order can behave differently. Much faster for long
+# dust lines and big networks (docs/PERFORMANCE.md).
+redstone_wire_algorithm = "vanilla"
+
+# Villagers, bees, golems and raids searching for beds, workstations, hives and the like skip chunk
+# columns that were found empty in the last 10 seconds (or until anything is added). false = vanilla.
+poi_scan_cache = true
+
+# Milliseconds of pathfinding per tick; requests after that get "no path" and the mob asks again a
+# little later. Spreads a crowd of mobs that all want a path at once over several ticks. 0 = unlimited.
+pathfinding_budget_ms = 8
+
+# Natural mob spawning runs every this many ticks. Mob caps stay the same, they fill more slowly.
+mob_spawn_interval = 1
+
+[singularity]
+# Brings back the Far Lands (terrain breaks down far from spawn). Only affects chunks that are
+# generated after you turn it on.
+enable_farlands = true
+
+# "classic": the real Far Lands, from 12,550,821 blocks out, generated like Beta 1.7.3 (walls, long
+#            tunnels, flooded gaps), with modern biomes, caves, ores and trees on top.
+# "mojang":  Mojang's own debug switch (26.3+). It breaks every noise at once, which mostly gives
+#            water and lava instead of the iconic walls.
+farlands_style = "classic"
+
+# Biggest block coordinate of the world (vanilla: 30000000, highest possible: 1073737728, which is
+# 2^30 minus 256 chunks: the game adds two coordinates in places, and beyond 2^30 that overflows).
+# Also set max_world_size and the world border to match. Above 33554432 the server switches to
+# Singularity's wide position packing (experimental). Vanilla clients stop at 29999999 by themselves;
+# players need the Singularity Wide Client mod (Fabric, see docs/COORDINATES.md) to go further.
+max_coordinate = 30000000
+
+# EXPERIMENTAL. Lets max_coordinate go up to 2147479552 (2^31 minus 256 chunks). Past 2^30 the game's
+# own sums of two coordinates overflow; the known ones (structure centres, mineshafts, villages and
+# other jigsaw structures) are rewritten to 64-bit math, but others may remain. Back up your world.
+full_int_range = false
+
+# EXPERIMENTAL (3.5.6 of docs/ROADMAP_64BIT.md). Minecraft's positions, geometry and world access
+# (BlockPos, ChunkPos, Level, the chunk cache, ...) get 64-bit X/Z when the server starts; the rest of
+# the game carries its 32-bit view of them. Together with full_int_range = true, max_coordinate may then
+# go past 2147483647 (up to 4503599627370496; powers of two can be written as "2^52"). Chunks are saved up to +-17179869184 (farther ones
+# regenerate after a restart). Vanilla clients can play anywhere: past 8388608 blocks their coordinates
+# are shifted (the shift is told in chat; true position = F3 position + shift; the Singularity Wide
+# Client mod shows true coordinates on F3). The world border then reaches max_coordinate and
+# max_world_size is ignored. Terrain generation works at true coordinates (3.5.8, no gaps). Entities are not
+# widened yet: with several far areas loaded at once, generation can still fail there. Back up your world.
+experimental_long_positions = false
+
+# The red screen tint near the world border. false: clients are told a warning distance of 0, so no
+# one sees it (no resource pack needed). The border itself still works; outside it the tint stays.
+world_border_warning = false

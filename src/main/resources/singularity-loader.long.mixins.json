@@ -1,0 +1,42 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.singularitymc.loader.patches.longpos",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "AddEntityPacketLongMixin",
+    "BorderExtentLongMixin",
+    "BorderPacketLongMixin",
+    "Cursor3DLongMixin",
+    "MovingBorderExtentLongMixin",
+    "ChunkCacheCenterPacketLongMixin",
+    "ChunkMapLongAccessor",
+    "ConnectionLongMixin",
+    "ClipContextLongMixin",
+    "NewEntityPositionLongMixin",
+    "PathNodeLongMixin",
+    "PathClearanceLongMixin",
+    "FriendlyByteBufLongMixin",
+    "MovePlayerPacketLongMixin",
+    "NaturalSpawnerLongMixin",
+    "PacketDecoderLongMixin",
+    "PacketEncoderLongMixin",
+    "PlayerLookAtPacketLongMixin",
+    "ServerCommonListenerLongAccessor",
+    "ServerPlayerLongMixin",
+    "SoundPacketLongMixin",
+    "TeleportLongMixin",
+    "BlockEntityLoadLongMixin",
+    "EntityStorageLongMixin",
+    "SectionStorageLongMixin",
+    "ChunkPosLongMixin",
+    "EntityLoadLongMixin",
+    "IOWorkerLongMixin",
+    "SerializableChunkDataLongMixin",
+    "MthLongMixin",
+    "WorldCoordinateLongMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

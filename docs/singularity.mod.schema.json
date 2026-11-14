@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://singularitymc.net/schema/singularity.mod.schema.json",
+  "title": "singularity.mod.json",
+  "description": "Metadata file placed in the root of a Singularity Loader mod jar.",
+  "type": "object",
+  "required": ["id", "version"],
+  "properties": {
+    "schemaVersion": { "const": 1, "description": "Format version. Optional; defaults to 1." },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{1,63}$",
+      "not": { "enum": ["singularity-loader", "minecraft", "java"] },
+      "description": "Unique mod id."
+    },
+    "version": { "type": "string", "description": "Semantic-version-like string, e.g. 1.2.3 or 2.0.0-beta.1." },
+    "name": { "type": "string", "description": "Display name. Defaults to the id." },
+    "description": { "type": "string" },
+    "authors": { "$ref": "#/$defs/people" },
+    "contributors": { "$ref": "#/$defs/people" },
+    "contact": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Links, e.g. homepage, sources, issues."
+    },
+    "license": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" } }
+      ]
+    },
+    "icon": { "type": "string", "description": "Path of an image inside the jar." },
+    "environment": { "enum": ["*", "server", "client"], "default": "*" },
+    "entrypoints": {
+      "type": "object",
+      "description": "Entrypoint key -> class name(s). Built-in keys: preLaunch, main, server. Any other key is yours to define.",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "array", "items": { "type": "string" } }
+        ]
+      }
+    },
+    "mixins": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "required": ["config"],
+            "properties": {
+              "config": { "type": "string" },
+              "environment": { "enum": ["*", "server", "client"] }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "depends": { "$ref": "#/$defs/relations" },
+    "recommends": { "$ref": "#/$defs/relations" },
+    "suggests": { "$ref": "#/$defs/relations" },
+    "conflicts": { "$ref": "#/$defs/relations" },
+    "breaks": { "$ref": "#/$defs/relations" },
+    "custom": { "type": "object", "description": "Free-form data for other mods to read." }
+  },
+  "$defs": {
+    "people": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" } } }
+        ]
+      }
+    },
+    "relations": {
+      "type": "object",
+      "description": "Mod id -> version range (a string, or an array of strings meaning 'any of').",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "array", "items": { "type": "string" } }
+        ]
+      }
+    }
+  }
+}

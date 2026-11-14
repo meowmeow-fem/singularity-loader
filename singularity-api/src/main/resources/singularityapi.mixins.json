@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.singularitymc.sapi.internal.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ChatMixin",
+    "DedicatedServerMixin",
+    "MinecraftServerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

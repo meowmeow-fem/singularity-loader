@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "singularity_wide_client",
+  "version": "${version}",
+  "name": "Singularity Wide Client",
+  "description": "Lets you go past 30,000,000 blocks on a Singularity server with max_coordinate set (up to 1,073,737,728), with correct block updates and lighting past 33,554,432. Also works in singleplayer.",
+  "license": "Apache-2.0",
+  "environment": "client",
+  "mixins": [
+    "singularity-wide-client.mixins.json",
+    "singularity-wide-client.limits.mixins.json",
+    "singularity-wide-client.wide.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": ">=26.1 <26.4",
+    "java": ">=25"
+  }
+}

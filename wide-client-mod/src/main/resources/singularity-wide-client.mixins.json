@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.singularitymc.wideclient.mixin",
+  "plugin": "net.singularitymc.wideclient.WideClientMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ClientPacketDecoderMixin",
+    "DebugPositionMixin",
+    "MidpointTargetsMixin",
+    "OriginPayloadMixin",
+    "SuggestedCoordinatesMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

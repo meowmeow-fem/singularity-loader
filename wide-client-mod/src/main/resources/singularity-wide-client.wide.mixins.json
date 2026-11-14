@@ -1,0 +1,18 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.singularitymc.loader.patches.wide",
+  "plugin": "net.singularitymc.wideclient.WideClientMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BlockPosWideMixin",
+    "ChunkPosWideMixin",
+    "ChunkPyramidWideMixin",
+    "EntitySectionStorageWideMixin",
+    "FriendlyByteBufWideMixin",
+    "SectionPosWideMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

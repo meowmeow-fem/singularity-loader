@@ -1,0 +1,8 @@
+# Example Plugin settings. Copied to SingularityPlugins/exampleplugin/config.toml on first start.
+# & colour codes work: &a green, &6 gold, &l bold, &r reset.
+
+greeting = "&6Hello"
+join-message = "&aWelcome to the server, {player}!"
+
+# How often (in ticks, 20 = 1 second) the number of online players is written to the log; 0 = never.
+announce-every-ticks = 6000

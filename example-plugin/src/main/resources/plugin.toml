@@ -1,0 +1,21 @@
+id = "exampleplugin"
+name = "Example Plugin"
+version = "${version}"
+main = "net.singularitymc.exampleplugin.ExamplePlugin"
+api = ">=4.0.0"
+description = "Shows the Singularity plugin API: a command, a listener, a repeating task and a config."
+authors = ["The Singularity Project"]
+
+[commands.hello]
+description = "Says hello (to you or to someone else)"
+usage = "/hello [name]"
+aliases = ["hi"]
+permission = "exampleplugin.hello"
+
+[permissions."exampleplugin.hello"]
+default = "true"
+description = "Use /hello"
+
+[permissions."exampleplugin.whereami"]
+default = "true"
+description = "Use /whereami"

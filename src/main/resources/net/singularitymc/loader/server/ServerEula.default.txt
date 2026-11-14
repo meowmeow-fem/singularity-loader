@@ -1,0 +1,13 @@
+# ==============================================================================
+#                      SINGULARITY SERVER EULA ACCEPTANCE
+# ==============================================================================
+# By changing the setting below to TRUE, you declare that you agree to Mojang's
+# End User License Agreement (EULA).
+#
+# Mojang EULA Reference: https://www.minecraft.net/en-us/eula
+#
+# Note: Singularity requires explicit EULA acceptance to boot the underlying
+# Minecraft server engine and load mod/plugin environments.
+# ==============================================================================
+
+eula=false

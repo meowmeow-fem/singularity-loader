@@ -1,0 +1,24 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.singularitymc.loader.patches",
+  "plugin": "net.singularitymc.wideclient.WideClientMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BorderWarningMixin$Delay",
+    "BorderWarningMixin$Distance",
+    "BorderWarningMixin$Initialize",
+    "EntityLimitMixin",
+    "ForceLoadLimitMixin",
+    "LevelLimitMixin",
+    "MinecraftServerLimitMixin",
+    "PacketLimitMixin",
+    "PlayerLimitMixin",
+    "WorldBorderCommandLimitMixin",
+    "WorldBorderLimitMixin",
+    "WorldBorderSettingsLimitMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
