@@ -309,6 +309,13 @@ public final class SingularityLauncher {
             applyWorldLimit(config);
             ServerState.setBorderWarning(config.get("world_border_warning", "false").equalsIgnoreCase("true"));
             net.singularitymc.loader.util.Perf.configure(config::get);
+            // read by net.singularitymc.gui (the server window); -D on the command line wins
+            if (System.getProperty("singularity.gui.window") == null) {
+                System.setProperty("singularity.gui.window", config.get("singularity_window", "true"));
+            }
+            if (System.getProperty("singularity.gui.animations") == null) {
+                System.setProperty("singularity.gui.animations", config.get("window_animations", "true"));
+            }
             if (!serverFilePatches) {
                 // This Minecraft version does not have the methods our patches replace: give the game its own files instead.
                 Files.writeString(layout.root().resolve("eula.txt"), "eula=true\n");

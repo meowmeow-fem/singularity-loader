@@ -7,6 +7,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ## [4.4.0] - Unreleased
 
 ### Added
+- **Server window** (`net.singularitymc.gui`, `singularity_window = true`): started without `nogui`, the server opens
+  Singularity's own window instead of Minecraft's grey one: borderless with round corners, a glowing pink-to-purple
+  outline and slowly drifting light; tick rate as a ring, tick times of the last 90 seconds, memory, uptime, load
+  level; the console with coloured levels (the loader's own entries included), a command line with history; the
+  players (click one for kick / ban / op); quick actions (save, list, day, weather, tick report, open the folder or
+  the config, stop). Closing it stops the server after a second click. The moving parts are drawn 30 times a second
+  with the focus, 5 without, never while minimised (`window_animations = false` stops them); the console is only
+  redrawn when text arrives. `-Dsingularity.gui.snapshot=<file.png>` saves a picture of the window 12 s after it
+  opened; `java -cp singularity-loader.jar net.singularitymc.gui.ConsoleWindow` shows it with made-up numbers.
+- `./gradlew releaseZip`: the loader package with the API mod and the Server Manager and AntiCheat plugins in their
+  folders, and the client mods in `client-mods/`.
 - **Singularity API 4.2.0**: `PlayerMoveEvent` (one per movement packet, after the server applied it; cancelling puts
   the player back) and `PlayerAttackEvent` (before a hit is worked out, with the distance to the target's hit box and
   the player's reach; cancelling drops the hit). `Player` gained the movement state anti-cheat checks need:

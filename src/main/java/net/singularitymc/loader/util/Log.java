@@ -124,7 +124,39 @@ public final class Log {
         if (level == Level.DEBUG && !debugEnabled) {
             return;
         }
-        emit(rows(channel, level, format(message, args)));
+        String text = format(message, args);
+        emit(rows(channel, level, text));
+        tell(channel, level.label, text);
+    }
+
+    /** Receives every log entry as its parts (the server window shows them without the console's box drawing). */
+    public interface Sink {
+        void entry(String channel, String level, String text);
+    }
+
+    private static final java.util.ArrayDeque<String[]> RECENT = new java.util.ArrayDeque<>();
+    private static Sink sink;
+
+    private static synchronized void tell(String channel, String level, String text) {
+        if (sink != null) {
+            sink.entry(channel, level, text);
+            return;
+        }
+        if (RECENT.size() == 200) {
+            RECENT.removeFirst();
+        }
+        RECENT.addLast(new String[] {channel, level, text});
+    }
+
+    /** Sets (or with {@code null} removes) the sink; a new sink first gets the entries logged before it came. */
+    public static synchronized void setSink(Sink newSink) {
+        sink = newSink;
+        if (newSink != null) {
+            for (String[] entry : RECENT) {
+                newSink.entry(entry[0], entry[1], entry[2]);
+            }
+            RECENT.clear();
+        }
     }
 
     /** One entry of the log: its text rows, then an empty row and a divider, all with the right edge on the same column. */

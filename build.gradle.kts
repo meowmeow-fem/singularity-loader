@@ -155,6 +155,34 @@ distributions {
     }
 }
 
+// ./gradlew releaseZip    the loader package (as distZip) with the Singularity API mod and the Server Manager and
+// AntiCheat plugins already in their folders, plus the Fabric client mods in client-mods/ (those go into a
+// player's .minecraft/mods, not onto the server). Needs libs/client (./gradlew setupClientLibs) for the client mods.
+tasks.register<Zip>("releaseZip") {
+    group = "distribution"
+    description = "Server package with the API mod and plugins installed, and the client mods"
+    val serverJars = mapOf(
+        ":singularity-api" to "SingularityMods",
+        ":server-manager-plugin" to "SingularityPlugins",
+        ":anticheat-plugin" to "SingularityPlugins",
+        ":keys-client-mod" to "client-mods",
+        ":wide-client-mod" to "client-mods"
+    )
+    dependsOn(serverJars.keys.map { "$it:jar" })
+    archiveBaseName.set("singularity-server")
+    destinationDirectory.set(layout.buildDirectory.dir("distributions"))
+    val top = "singularity-server-$loaderVersion"
+    into(top) {
+        from(tasks.jar)
+        into("lib") { from(configurations.runtimeClasspath) }
+        from("scripts") { filePermissions { unix("rwxr-xr-x") } }
+        from("LICENSE", "NOTICE", "README.md")
+        serverJars.forEach { (path, folder) ->
+            into(folder) { from(provider { project(path).tasks.getByName("jar") }) }
+        }
+    }
+}
+
 // ./gradlew runServer                  starts the loader from source in ./run (the server jar is downloaded on first start)
 // ./gradlew runServer -PwithExample    additionally loads the example mod
 tasks.register<JavaExec>("runServer") {

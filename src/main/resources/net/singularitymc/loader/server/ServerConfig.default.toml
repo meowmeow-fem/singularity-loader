@@ -147,6 +147,14 @@ pathfinding_budget_ms = 8
 mob_spawn_interval = 1
 
 [singularity]
+# The server window (it opens unless the server is started with "nogui" or the machine has no screen).
+# true: Singularity's window (tick rate, tick times, memory, console, players, quick actions).
+# false: Minecraft's own grey window.
+singularity_window = true
+# The window's moving parts (glowing outline, drifting light, gliding gauges). They are drawn 30 times a second
+# while the window has the focus, 5 times while it does not and not at all while it is minimised; false stops them.
+window_animations = true
+
 # Brings back the Far Lands (terrain breaks down far from spawn). Only affects chunks that are
 # generated after you turn it on.
 enable_farlands = true

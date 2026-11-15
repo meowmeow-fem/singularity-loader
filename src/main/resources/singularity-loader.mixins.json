@@ -39,6 +39,7 @@
     "ServerChunkCacheSpawnMixin",
     "ServerLevelPerfMixin",
     "ServerPlayerTrackingMixin",
+    "ServerWindowMixin",
     "SettingsMixin",
     "TrackedEntityMixin",
     "VillagerMixin",
