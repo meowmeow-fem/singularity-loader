@@ -14,6 +14,7 @@ import net.minecraft.world.level.GameType;
 import net.singularitymc.sapi.entity.GameMode;
 import net.singularitymc.sapi.entity.Player;
 import net.singularitymc.sapi.internal.ApiRuntime;
+import net.singularitymc.sapi.internal.Logins;
 
 /**
  * A player, looked up by UUID on every call: Minecraft makes a new {@link ServerPlayer} object on respawn and on
@@ -109,6 +110,36 @@ public final class PlayerImpl extends EntityImpl implements Player {
 
     private ServerPlayer orNull() {
         return server.getPlayerList().getPlayer(uuid);
+    }
+
+    @Override
+    public boolean isMojangVerified() {
+        return server.usesAuthentication() || Logins.isVerified(uuid);
+    }
+
+    @Override
+    public String address() {
+        ServerPlayer p = orNull();
+        return p == null ? "" : ServerHooks.ip(p.connection.getRemoteAddress());
+    }
+
+    @Override
+    public void restrict(java.util.Collection<String> allowedCommands) {
+        java.util.Set<String> lower = new java.util.HashSet<>();
+        for (String command : allowedCommands) {
+            lower.add(command.toLowerCase(java.util.Locale.ROOT));
+        }
+        Logins.restrict(uuid, lower);
+    }
+
+    @Override
+    public void unrestrict() {
+        Logins.unrestrict(uuid);
+    }
+
+    @Override
+    public boolean isRestricted() {
+        return Logins.isRestricted(uuid);
     }
 
     @Override

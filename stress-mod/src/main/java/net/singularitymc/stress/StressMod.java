@@ -168,6 +168,19 @@ public final class StressMod implements ServerModInitializer {
                         .executes(c -> menu(c.getSource(), IntegerArgumentType.getInteger(c, "bot"),
                             IntegerArgumentType.getInteger(c, "slot"),
                             com.mojang.brigadier.arguments.StringArgumentType.getString(c, "how")))))))
+            // test drivers for login plugins: what a bot's client would send, through the real packet path
+            .then(Commands.literal("type").then(Commands.argument("bot", IntegerArgumentType.integer(1, 2000))
+                .then(Commands.argument("command", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+                    .executes(c -> type(c.getSource(), IntegerArgumentType.getInteger(c, "bot"),
+                        com.mojang.brigadier.arguments.StringArgumentType.getString(c, "command"))))))
+            .then(Commands.literal("slot").then(Commands.argument("bot", IntegerArgumentType.integer(1, 2000))
+                .then(Commands.argument("slot", IntegerArgumentType.integer(0, 8))
+                    .executes(c -> slot(c.getSource(), IntegerArgumentType.getInteger(c, "bot"),
+                        IntegerArgumentType.getInteger(c, "slot"))))))
+            .then(Commands.literal("form").then(Commands.argument("bot", IntegerArgumentType.integer(1, 2000))
+                .then(Commands.argument("answer", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+                    .executes(c -> form(c.getSource(), IntegerArgumentType.getInteger(c, "bot"),
+                        com.mojang.brigadier.arguments.StringArgumentType.getString(c, "answer"))))))
             .then(Commands.literal("chunks").executes(c -> chunks(c.getSource())))
             .then(Commands.literal("clear").executes(c -> clear(c.getSource())))
             .then(Commands.literal("mark").executes(c -> mark(c.getSource())))
@@ -467,6 +480,91 @@ public final class StressMod implements ServerModInitializer {
         }
         String msg = sb.toString();
         source.sendSuccess(() -> Component.literal(msg), false);
+        return 1;
+    }
+
+    /** Hands a packet to the bot's listener the way the network does: through {@code Connection.genericsFtw}. */
+    private static void receive(ServerPlayer p, net.minecraft.network.protocol.Packet<?> packet) {
+        try {
+            java.lang.reflect.Method m = Connection.class.getDeclaredMethod("genericsFtw",
+                net.minecraft.network.protocol.Packet.class, PacketListener.class);
+            m.setAccessible(true);
+            m.invoke(null, packet, p.connection);
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            throw new IllegalStateException(e.getCause());
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** The bot types a command (without the slash) into its chat: an unsigned command packet. */
+    private static int type(CommandSourceStack source, int index, String command) {
+        if (index > FAKES.size()) {
+            source.sendFailure(Component.literal("Stress: there is no Bot" + index));
+            return 0;
+        }
+        ServerPlayer p = FAKES.get(index - 1).player;
+        receive(p, new net.minecraft.network.protocol.game.ServerboundChatCommandPacket(command));
+        String shown = command.contains(" ") ? command.substring(0, command.indexOf(' ')) + " ..." : command;
+        source.sendSuccess(() -> Component.literal("Stress: " + p.getName().getString() + " typed /" + shown), false);
+        return 1;
+    }
+
+    /** The bot selects a hotbar slot: an ordinary game packet, to see whether the server takes it. */
+    private static int slot(CommandSourceStack source, int index, int slot) {
+        if (index > FAKES.size()) {
+            source.sendFailure(Component.literal("Stress: there is no Bot" + index));
+            return 0;
+        }
+        ServerPlayer p = FAKES.get(index - 1).player;
+        int before = p.getInventory().getSelectedSlot();
+        receive(p, new net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket(slot));
+        int after = p.getInventory().getSelectedSlot();
+        source.sendSuccess(() -> Component.literal("Stress: " + p.getName().getString() + " asked for hotbar slot " + slot
+            + ": was " + before + ", is " + after + (after == slot ? " (accepted)" : " (ignored)")), false);
+        return 1;
+    }
+
+    /**
+     * The bot answers the Singularity API form it has open: {@code answer} is the button's id followed by
+     * {@code key=value} pairs, or {@code forged} to answer with a made-up form id.
+     */
+    private static int form(CommandSourceStack source, int index, String answer) {
+        if (index > FAKES.size()) {
+            source.sendFailure(Component.literal("Stress: there is no Bot" + index));
+            return 0;
+        }
+        ServerPlayer p = FAKES.get(index - 1).player;
+        String[] parts = answer.split(" ");
+        String id;
+        try {
+            Class<?> forms = Class.forName("net.singularitymc.sapi.internal.mc.FormImpl", true, StressMod.class.getClassLoader());
+            Field open = forms.getDeclaredField("OPEN");
+            open.setAccessible(true);
+            Object entry = ((java.util.Map<?, ?>) open.get(null)).get(p.getUUID());
+            if (entry == null) {
+                source.sendSuccess(() -> Component.literal("Stress form: " + p.getName().getString() + " has no form open"), false);
+                return 0;
+            }
+            java.lang.reflect.Method idOf = entry.getClass().getDeclaredMethod("id");
+            idOf.setAccessible(true);
+            id = (String) idOf.invoke(entry);
+        } catch (ReflectiveOperationException e) {
+            source.sendFailure(Component.literal("Stress form: the Singularity API mod is not there (" + e + ")"));
+            return 0;
+        }
+        net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
+        tag.putString("sapi_form", parts[0].equals("forged") ? "00".repeat(12) : id);
+        tag.putString("sapi_button", parts[0]);
+        for (int i = 1; i < parts.length; i++) {
+            int eq = parts[i].indexOf('=');
+            if (eq > 0) {
+                tag.putString(parts[i].substring(0, eq), parts[i].substring(eq + 1));
+            }
+        }
+        receive(p, new net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket(
+            net.minecraft.resources.Identifier.fromNamespaceAndPath("singularity", "form"), java.util.Optional.of(tag)));
+        source.sendSuccess(() -> Component.literal("Stress form: " + p.getName().getString() + " pressed '" + parts[0] + "'"), false);
         return 1;
     }
 

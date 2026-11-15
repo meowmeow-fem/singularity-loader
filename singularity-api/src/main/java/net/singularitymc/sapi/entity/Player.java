@@ -16,6 +16,32 @@ public interface Player extends Entity, CommandSender {
     /** Disconnects the player with a reason. */
     void kick(String reason);
 
+    // ---- identity and restriction (since API 4.4) ----
+
+    /**
+     * Whether this player proved to Mojang's session servers that they own the account: always on an online-mode
+     * server, and on an offline-mode server for players a {@link net.singularitymc.sapi.login.LoginGate} sent
+     * through Mojang. Such a player cannot be an impostor.
+     */
+    boolean isMojangVerified();
+
+    /** The player's IP address as text, {@code ""} when unknown. */
+    String address();
+
+    /**
+     * Shuts the player out of the game without kicking them: until {@link #unrestrict()}, the server ignores
+     * everything their client sends except what the connection itself needs, answers to
+     * {@link net.singularitymc.sapi.gui.Form}s and the commands named here (without the slash, e.g.
+     * {@code "login"}). They cannot walk (falling is allowed), chat, use or drop items, open or click anything,
+     * break or place blocks, or hit; they take no damage. What packets are let through is a short allow-list, so
+     * anything not thought of is blocked. For "must log in first".
+     */
+    void restrict(java.util.Collection<String> allowedCommands);
+
+    void unrestrict();
+
+    boolean isRestricted();
+
     // ---- movement state (since API 4.2), as the server sees it; for an offline player all are false / 0 ----
 
     /** Flying as in creative mode (not gliding with an elytra). */

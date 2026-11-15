@@ -7,6 +7,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ## [4.4.0] - Unreleased
 
 ### Added
+- **Singularity Auth** plugin (`auth-plugin`, needs API 4.4; docs/AUTH.md): logins for offline-mode servers. A name
+  that belongs to a paid account must pass Mojang's session servers (as on an online-mode server) and needs no
+  password; everyone else registers a password (PBKDF2-HMAC-SHA256, 600,000 rounds) and can do nothing in the game
+  until logged in. Lockouts after wrong passwords, login timeout, accounts-per-address limit, a name already online
+  cannot be joined again, optional login window, account file with atomic writes.
+- **Singularity API 4.4.0**: `Singularity.setLoginGate` / `sapi.login.LoginGate` (decide per connecting client:
+  offline, must pass Mojang, or refuse; asynchronous), `Player.isMojangVerified()`, `Player.address()`,
+  `Player.restrict(allowedCommands)` / `unrestrict()` (the server drops everything a restricted player's client
+  sends except a short allow-list), and `sapi.gui.Form` (a window with text fields and buttons, one of the game's
+  dialogs).
+- Stress mod: `/stress type`, `/stress slot`, `/stress form` (a bot types a command, selects a hotbar slot, answers
+  a form, all through the real packet path).
 - **Server window** (`net.singularitymc.gui`, `singularity_window = true`): started without `nogui`, the server opens
   Singularity's own window instead of Minecraft's grey one: borderless with round corners, a glowing pink-to-purple
   outline and slowly drifting light; tick rate as a ring, tick times of the last 90 seconds, memory, uptime, load

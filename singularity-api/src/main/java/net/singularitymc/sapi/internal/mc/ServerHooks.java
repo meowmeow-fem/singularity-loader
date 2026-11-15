@@ -13,6 +13,7 @@ import net.singularitymc.sapi.event.server.ServerStartedEvent;
 import net.singularitymc.sapi.event.server.ServerStoppingEvent;
 import net.singularitymc.sapi.event.server.ServerTickEvent;
 import net.singularitymc.sapi.internal.ApiRuntime;
+import net.singularitymc.sapi.internal.Logins;
 
 /** Called by the API mod's Mixins ({@code internal.mixin}); Mixin classes themselves cannot be referenced. */
 public final class ServerHooks {
@@ -82,6 +83,16 @@ public final class ServerHooks {
         if (r == null || !r.isServerRunning() || player.hasDisconnected()) {
             return;
         }
+        if (Logins.isRestricted(player.getUUID())) {
+            // a restricted player stays where they are; only falling is let through (or they would hang in the air
+            // and be kicked for flying). No event: to plugins this player is not moving.
+            boolean sideways = player.getX() != x || player.getZ() != z;
+            boolean up = player.getY() > y;
+            if (sideways || up) {
+                player.connection.teleport(x, up ? y : player.getY(), z, player.getYRot(), player.getXRot());
+            }
+            return;
+        }
         World world = WorldImpl.of(player.level());
         Location from = new Location(world, x, y, z, yaw, pitch);
         Location to = new Location(world, player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
@@ -96,6 +107,9 @@ public final class ServerHooks {
         if (r == null || !r.isServerRunning()) {
             return false;
         }
+        if (Logins.isRestricted(player.getUUID())) {
+            return true;
+        }
         double distance = Math.sqrt(target.getBoundingBox().distanceToSqr(player.getEyePosition()));
         return EventBus.post(new PlayerAttackEvent(PlayerImpl.of(player), EntityImpl.of(target), distance,
                 player.entityInteractionRange())).isCancelled();
@@ -107,6 +121,26 @@ public final class ServerHooks {
         if (r == null || !r.isServerRunning()) {
             return false;
         }
+        if (Logins.isRestricted(player.getUUID())) {
+            return true; // also keeps a password typed without the slash out of everybody's chat
+        }
         return EventBus.post(new PlayerChatEvent(PlayerImpl.of(player), message)).isCancelled();
+    }
+
+    /** {@code ServerCommonPacketListenerImpl.handleCustomClickAction}: whether it was a form's answer. */
+    public static boolean formAnswer(ServerPlayer player, net.minecraft.resources.Identifier action,
+            java.util.Optional<net.minecraft.nbt.Tag> payload) {
+        if (!onServerThread(player)) {
+            return false; // the network thread's call: the game re-schedules it to the server thread
+        }
+        if (FormImpl.answer(player, action, payload)) {
+            return true;
+        }
+        return Logins.isRestricted(player.getUUID()); // nothing else from a restricted player
+    }
+
+    /** See {@link LoginHooks#ip}. */
+    public static String ip(java.net.SocketAddress address) {
+        return LoginHooks.ip(address);
     }
 }

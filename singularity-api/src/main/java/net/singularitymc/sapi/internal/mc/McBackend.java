@@ -13,6 +13,7 @@ public final class McBackend implements Backend {
         this.server = server;
         this.impl = new ServerImpl(server);
         net.singularitymc.sapi.internal.Menus.setFactory(MenuImpl::new);
+        net.singularitymc.sapi.internal.Forms.setShower(new FormImpl());
     }
 
     void detach() {

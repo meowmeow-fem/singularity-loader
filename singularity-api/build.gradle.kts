@@ -4,7 +4,7 @@ plugins {
 
 // The Singularity API mod: the API for mods and plugins (package net.singularitymc.sapi) plus the plugin loader that
 // reads SingularityPlugins/. It has its own version: plugins name it in plugin.toml (api = ">=4.0.0").
-version = "4.3.0"
+version = "4.4.0"
 group = "net.singularitymc.sapi"
 
 // Same folders as the loader itself; -PminecraftLibraries is relative to the root project, not to this one.

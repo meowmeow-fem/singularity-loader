@@ -1,0 +1,49 @@
+id = "auth"
+name = "Singularity Auth"
+version = "${version}"
+main = "net.singularitymc.auth.AuthPlugin"
+# the login gate, Player.restrict and forms came with API 4.4
+api = ">=4.4.0"
+description = "Logins for an offline-mode server: paid accounts are verified by Mojang, everyone else has a password."
+authors = ["The Singularity Project"]
+
+[commands.register]
+description = "Creates your account"
+usage = "/register <password> <password again>"
+aliases = ["reg"]
+permission = "auth.use"
+
+[commands.login]
+description = "Logs you in"
+usage = "/login <password>"
+aliases = ["l"]
+permission = "auth.use"
+
+[commands.logout]
+description = "Logs you out without leaving"
+usage = "/logout"
+permission = "auth.use"
+
+[commands.changepassword]
+description = "Changes your password"
+usage = "/changepassword <old password> <new password>"
+aliases = ["changepw"]
+permission = "auth.use"
+
+[commands.premium]
+description = "Ties this name to your paid Minecraft account: no password any more, Mojang checks you"
+usage = "/premium [confirm]"
+permission = "auth.use"
+
+[commands.auth]
+description = "Account administration"
+usage = "/auth <info|unregister|cracked|forcelogin> <name>, /auth <stats|reload>"
+permission = "auth.admin"
+
+[permissions."auth.use"]
+default = "true"
+description = "Register, log in, change the password"
+
+[permissions."auth.admin"]
+default = "op"
+description = "Use /auth"

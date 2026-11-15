@@ -1,0 +1,48 @@
+# Singularity Auth settings. Copied to SingularityPlugins/auth/config.toml on first start; "/auth reload" re-reads it.
+# For a server with online_mode = false. (With online_mode = true every player is checked by Mojang already and
+# this plugin logs everyone in at once.)
+
+# The login window: a form with a password field, shown when an unauthenticated player joins. The commands
+# /login and /register always work as well. Note: Minecraft has no field that hides typed text.
+login-gui = true
+
+# Seconds a player has to log in or register before being kicked.
+login-timeout-seconds = 60
+# Seconds between the reminders in chat.
+reminder-seconds = 8
+
+[password]
+min-length = 8
+# PBKDF2-HMAC-SHA256 rounds for new and changed passwords (older hashes are upgraded at the next login).
+# 600000 is the current OWASP recommendation; each login costs about a quarter of a second of one CPU core.
+iterations = 600000
+
+[limits]
+# Wrong passwords before the player is kicked and the name and address are locked.
+max-attempts = 5
+# Seconds of the first lock; it doubles each time, up to one hour.
+lock-seconds = 300
+# Accounts that may be registered from one address; 0 = no limit.
+accounts-per-address = 3
+# Minutes a player stays logged in after leaving, if they come back from the same address; 0 = always ask.
+# Convenient, but everyone behind the same address (family, school, VPN) counts as the same.
+session-minutes = 0
+
+[premium]
+# true: a name that belongs to a paid Minecraft account, and has no password account here yet, can only be used
+# by the owner of that account. The server asks Mojang whether the name is paid, and then makes the client prove
+# it exactly as an online-mode server would. Verified players need no password and get their real UUID and skin.
+# false: nobody is checked with Mojang; everyone registers a password.
+protect-paid-names = true
+# Asked with the player's name in place of {name}: 200 = paid account, 204 / 404 = no such account.
+lookup-url = "https://api.minecraftservices.com/minecraft/profile/lookup/name/{name}"
+lookup-timeout-seconds = 4
+
+[messages]
+register = "&ePlease register: &f/register <password> <password again>"
+login = "&ePlease log in: &f/login <password>"
+logged-in = "&aLogged in. Welcome back!"
+registered = "&aAccount created. You are logged in."
+premium = "&aVerified by Mojang as the owner of this account. No password needed."
+wrong-password = "&cWrong password."
+timeout = "You took too long to log in."

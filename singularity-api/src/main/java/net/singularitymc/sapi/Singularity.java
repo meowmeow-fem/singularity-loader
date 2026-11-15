@@ -59,6 +59,15 @@ public final class Singularity {
         return ApiRuntime.get().plugins();
     }
 
+    /**
+     * Sets the server's login gate (since API 4.4), or removes it with {@code null}. With a gate, every client
+     * that connects is held until the gate has decided how it must prove who it is; see
+     * {@link net.singularitymc.sapi.login.LoginGate}. A plugin that sets one should remove it in {@code onDisable}.
+     */
+    public static void setLoginGate(net.singularitymc.sapi.login.LoginGate gate) {
+        net.singularitymc.sapi.internal.Logins.setGate(gate);
+    }
+
     /** Permission defaults and the permission provider. */
     public static Permissions permissions() {
         return ApiRuntime.get().permissions();

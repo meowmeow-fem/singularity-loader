@@ -7,8 +7,13 @@
     "AttackMixin",
     "ChatMixin",
     "DedicatedServerMixin",
+    "FormMixin",
+    "JoinMixin",
+    "LoginGateMixin",
     "MinecraftServerMixin",
-    "MoveMixin"
+    "MoveMixin",
+    "PacketGateMixin",
+    "RestrictedCommandMixin"
   ],
   "injectors": {
     "defaultRequire": 1

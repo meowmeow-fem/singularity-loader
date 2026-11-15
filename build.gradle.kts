@@ -155,8 +155,8 @@ distributions {
     }
 }
 
-// ./gradlew releaseZip    the loader package (as distZip) with the Singularity API mod and the Server Manager and
-// AntiCheat plugins already in their folders, plus the Fabric client mods in client-mods/ (those go into a
+// ./gradlew releaseZip    the loader package (as distZip) with the Singularity API mod and the Server Manager,
+// AntiCheat and Auth plugins already in their folders, plus the Fabric client mods in client-mods/ (those go into a
 // player's .minecraft/mods, not onto the server). Needs libs/client (./gradlew setupClientLibs) for the client mods.
 tasks.register<Zip>("releaseZip") {
     group = "distribution"
@@ -165,6 +165,7 @@ tasks.register<Zip>("releaseZip") {
         ":singularity-api" to "SingularityMods",
         ":server-manager-plugin" to "SingularityPlugins",
         ":anticheat-plugin" to "SingularityPlugins",
+        ":auth-plugin" to "SingularityPlugins",
         ":keys-client-mod" to "client-mods",
         ":wide-client-mod" to "client-mods"
     )

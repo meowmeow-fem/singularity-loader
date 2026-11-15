@@ -10,6 +10,8 @@ include("example-plugin")
 include("server-manager-plugin")
 // server-side anti-cheat (speed, fly, timer, reach, click rate) on the API's move and attack events (API 4.2)
 include("anticheat-plugin")
+// logins for offline-mode servers: paid accounts verified by Mojang, passwords for everyone else (API 4.4)
+include("auth-plugin")
 // Fabric client mod: Right Shift = /dashboard, F12 = /anticheat gui
 include("keys-client-mod")
 // 4.2: test-only load-test mod (fake players, tick-time report); not part of the distribution
