@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [4.4.0] - Unreleased
 
+### Fixed
+- AntiCheat: the fly check set back players who launched themselves repeatedly in mid-air (a mace with Wind Burst
+  used hit after hit, wind charges). It compared the vertical speed with 10 packets earlier, so every new launch
+  counted as "not falling". It now follows gravity packet by packet: a packet whose vertical speed is above what
+  the previous one allows counts once, and only 8 such packets among the last 20 in the air fail the check.
+  Hovering, flying up, gliding down and bobbing in place are still caught (sooner than before).
+
 ### Added
 - **Singularity Auth** plugin (`auth-plugin`, needs API 4.4; docs/AUTH.md): logins for offline-mode servers. A name
   that belongs to a paid account must pass Mojang's session servers (as on an online-mode server) and needs no

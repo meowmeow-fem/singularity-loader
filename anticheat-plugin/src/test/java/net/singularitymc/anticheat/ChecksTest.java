@@ -40,37 +40,73 @@ class ChecksTest {
     @Test
     void hoveringClimbingAndGlidingAreFlying() {
         double[] hover = new double[60];
-        assertEquals(5, flyFlags(hover), "hovering: one flag per 12 packets");
+        assertTrue(flyFlags(hover) >= 5, "hovering");
 
         double[] up = new double[24];
         java.util.Arrays.fill(up, 0.3);
-        assertEquals(2, flyFlags(up), "flying up");
+        assertTrue(flyFlags(up) >= 2, "flying up");
 
         double[] glide = new double[24];
         java.util.Arrays.fill(glide, -0.1);
-        assertEquals(2, flyFlags(glide), "sinking slowly at a steady rate");
+        assertTrue(flyFlags(glide) >= 2, "sinking slowly at a steady rate");
+
+        double[] slowFall = new double[40];
+        java.util.Arrays.fill(slowFall, -0.5);
+        assertTrue(flyFlags(slowFall) >= 2, "falling at a steady half block per tick");
+
+        // bobbing up and down to stay at one height
+        double[] bob = new double[40];
+        for (int i = 0; i < bob.length; i++) {
+            bob[i] = i % 2 == 0 ? 0.1 : -0.1;
+        }
+        assertTrue(flyFlags(bob) >= 1, "bobbing in place");
+    }
+
+    /** Free fall that is launched upwards again every time it falls faster than {@code relaunchBelow}. */
+    private static double[] launches(double launch, double relaunchBelow, int ticks) {
+        double[] dys = new double[ticks];
+        double v = launch;
+        for (int i = 0; i < ticks; i++) {
+            dys[i] = v;
+            v = (v - 0.08) * 0.98;
+            if (v < relaunchBelow) {
+                v = launch;
+            }
+        }
+        return dys;
     }
 
     @Test
-    void oneImpulseInTheAirFlagsAtMostOnce() {
+    void launchingAgainAndAgainIsNotFlying() {
+        // a mace with Wind Burst on mobs in mid-air, for a minute: thrown up again on every hit
+        assertEquals(0, flyFlags(launches(1.2, -0.6, 1200)), "wind burst I, hit after hit");
+        assertEquals(0, flyFlags(launches(2.4, -0.3, 1200)), "wind burst III");
+        // wind charges under the feet every half second (their cooldown), never touching the ground
+        assertEquals(0, flyFlags(launches(0.9, 0.2, 1200)), "wind charge every 10 ticks");
+        // even a launch every 4 ticks is under the limit: 5 of 20 packets
+        assertEquals(0, flyFlags(launches(0.5, 0.25, 600)), "a launch every fourth tick");
+    }
+
+    @Test
+    void oneImpulseInTheAirIsFine() {
         // falling for 15 ticks, then thrown up again (wind charge in mid-air)
         double[] fall = freeFall(0.0, 15);
         double[] again = freeFall(1.2, 80);
         double[] all = new double[fall.length + again.length];
         System.arraycopy(fall, 0, all, 0, fall.length);
         System.arraycopy(again, 0, all, fall.length, again.length);
-        assertTrue(flyFlags(all) <= 1);
+        assertEquals(0, flyFlags(all));
     }
 
     @Test
     void resetStartsTheAirTimeOver() {
         Checks.Fly fly = new Checks.Fly();
-        for (int i = 0; i < 11; i++) {
+        for (int i = 0; i < 7; i++) {
             assertFalse(fly.air(0));
         }
         fly.reset(); // touched the ground
-        for (int i = 0; i < 11; i++) {
-            assertFalse(fly.air(0));
+        for (int i = 0; i < 8; i++) {
+            assertFalse(fly.air(0), "packet " + i + " after the reset");
         }
         assertTrue(fly.air(0));
     }

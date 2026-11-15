@@ -202,8 +202,8 @@ public final class AntiCheatPlugin extends JavaPlugin {
             if (held) {
                 d.fly.reset();
             } else if (d.fly.air(dy) && !floatsLegitimately(player, to)) {
-                if (flag(player, d, Check.FLY, "not falling after " + Checks.Fly.MIN_AIR + " packets in the air (vertical "
-                        + three(dy) + " blocks/tick)")) {
+                if (flag(player, d, Check.FLY, "not falling: " + Checks.Fly.LIMIT + " of the last " + Checks.Fly.WINDOW
+                        + " packets in the air defied gravity (vertical " + three(dy) + " blocks/tick)")) {
                     setBack(event, player, d, d.safe);
                     return;
                 }

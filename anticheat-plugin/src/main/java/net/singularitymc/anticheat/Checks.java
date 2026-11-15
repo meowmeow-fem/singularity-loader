@@ -43,38 +43,50 @@ final class Checks {
     }
 
     /**
-     * Flying: a player with nothing under them is in free fall, and in free fall the vertical speed drops by 0.08
-     * blocks per tick (and then by 2 %), whatever it was. So after {@link #MIN_AIR} packets in the air the vertical
-     * speed must be clearly lower than 10 packets earlier, or the player must already be falling fast (near the
-     * terminal speed the drop levels out). Hovering, climbing and gliding down at a steady rate all fail that.
+     * Flying: a player with nothing under them is in free fall, and in free fall each tick's vertical speed follows
+     * from the one before: {@code (previous - 0.08) * 0.98}. A packet whose vertical speed is clearly above that
+     * "defies gravity". One such packet is normal: it is what a jump, a wind charge, a mace's wind burst, a slime
+     * bounce, an explosion or a hit looks like, and after it the fall goes on by the same rule. Flying is many of
+     * them: hovering, climbing and gliding down at a steady rate defy gravity in every packet. So the check counts
+     * them over the last {@link #WINDOW} packets in the air and fails at {@link #LIMIT}; launching oneself again
+     * and again (a mace on a row of mobs, wind charges every half second) stays far below that.
      */
     static final class Fly {
-        static final int MIN_AIR = 12;
-        private static final int LOOK_BACK = 10;
-        /** Gravity takes about 0.7 blocks per tick off the vertical speed in 10 ticks; less than this is not gravity. */
-        static final double MIN_DROP = 0.3;
-        static final double FALLING_FAST = -1.0;
+        static final int WINDOW = 20;
+        static final int LIMIT = 8;
+        /** Rounding and the game's own small corrections stay well under this. */
+        static final double SLACK = 0.05;
 
-        private final double[] history = new double[LOOK_BACK];
+        private final boolean[] defied = new boolean[WINDOW];
         private int airPackets;
+        private int count;
+        private double previous;
 
-        /** Adds one packet in the air; {@code true} if the movement cannot be free fall. */
+        /** Adds one packet in the air; {@code true} if the movement of the last packets cannot be falling. */
         boolean air(double dy) {
-            int slot = airPackets % LOOK_BACK;
-            double before = history[slot];
-            history[slot] = dy;
-            if (++airPackets < MIN_AIR) {
+            int slot = airPackets % WINDOW;
+            // the first packet in the air has no fall before it to compare with
+            boolean now = airPackets > 0 && dy > (previous - 0.08) * 0.98 + SLACK;
+            previous = dy;
+            airPackets++;
+            if (defied[slot]) {
+                count--;
+            }
+            defied[slot] = now;
+            if (now) {
+                count++;
+            }
+            if (count < LIMIT) {
                 return false;
             }
-            if (dy <= FALLING_FAST || dy <= before - MIN_DROP) {
-                return false;
-            }
-            airPackets = 0; // judge again after another MIN_AIR packets
+            reset(); // judge the next packets on their own
             return true;
         }
 
         void reset() {
             airPackets = 0;
+            count = 0;
+            java.util.Arrays.fill(defied, false);
         }
 
         int airPackets() {

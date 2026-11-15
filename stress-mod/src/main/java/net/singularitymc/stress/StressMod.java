@@ -610,6 +610,15 @@ public final class StressMod implements ServerModInitializer {
                 f.vy = (f.vy - 0.08) * 0.98;
                 send(f, 0.36, y - f.cy, y <= f.groundY);
             }
+            case "mace" -> {
+                // legitimate: a mace with Wind Burst on mobs in mid-air. Thrown up, falls by the game's gravity,
+                // and is thrown up again on the next hit, without touching the ground in between.
+                if (age == 0 || f.vy < -0.6) {
+                    f.vy = 1.2;
+                }
+                send(f, 0.1, f.vy, false);
+                f.vy = (f.vy - 0.08) * 0.98;
+            }
             case "fly" -> send(f, 0.2, f.cy < f.groundY + 4 ? 0.3 : 0, false);
             case "glide" -> send(f, 0.2, age < 20 ? 0.3 : -0.05, false);
             default -> f.cheatAge = f.cheatTicks;

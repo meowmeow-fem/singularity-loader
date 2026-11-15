@@ -26,8 +26,9 @@ kick-at = 0
 
 [fly]
 enabled = true
-# Looks at players with nothing solid under them: after 12 packets in the air their vertical speed must have dropped
-# the way gravity makes it drop. Catches hovering, flying up and gliding down slowly.
+# Looks at players with nothing solid under them: each packet's vertical speed must follow from the one before by
+# gravity. One packet that does not is a launch (jump, wind charge, mace wind burst, slime, explosion) and is fine,
+# however often it happens; 8 of the last 20 is hovering, flying up or gliding down slowly.
 setback-at = 2
 kick-at = 0
 
